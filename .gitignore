@@ -1,0 +1,14 @@
+# Configuration files (may contain tokens/secrets)
+*.yaml
+*.yml
+!*.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Cache
+.climate_cache/
