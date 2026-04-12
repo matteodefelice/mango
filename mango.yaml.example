@@ -1,0 +1,11 @@
+# Mango configuration
+# Copy this file to one of:
+#   ./mango.yaml                    (project-local)
+#   ~/.config/mango/config.yaml     (user-global)
+# or point MANGO_CONFIG env var to your file.
+
+# Earth Data Hub personal access token
+edh_token: "YOUR_EDH_TOKEN_HERE"
+
+# Local directory for caching downloaded data
+# cache_dir: ~/.climate_cache
