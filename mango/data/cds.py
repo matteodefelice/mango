@@ -42,7 +42,7 @@ def load_era5(
     cached_full_path = derived_dir / cached_filename
 
     if cached_full_path.exists():
-        return xr.open_dataset(cached_full_path)
+        return xr.open_dataset(cached_full_path)  # saved with canonical coord names
 
     cds_lon = lon if lon < 180 else lon - 360
 
@@ -77,6 +77,7 @@ def load_era5(
         t2m_daily.min().rename("tasmin"),
         t2m_daily.mean().rename("tas"),
     ])
+    e5_t = e5_t.rename({"valid_time": "time", "longitude": "lon", "latitude": "lat"})
     e5_t["pr"].attrs["units"] = "kg m-2 s-1"
     e5_t.to_netcdf(cached_full_path)
     return e5_t
