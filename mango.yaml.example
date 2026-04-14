@@ -9,3 +9,19 @@ edh_token: "YOUR_EDH_TOKEN_HERE"
 
 # Local directory for caching downloaded data
 # cache_dir: ~/.climate_cache
+
+# Per-indicator parameter overrides.
+# Keys must match registered indicator names exactly.
+# Values are forwarded as keyword arguments to the xclim function.
+# Omit any indicator to use its xclim defaults.
+#
+# indicators:
+#   growing_season_length:
+#     thresh: "8.0 degC"   # default: "5.0 degC"
+#     window: 6
+#   frost_days:
+#     thresh: "-2 degC"    # default: "0 degC"
+#   cooling_degree_days:
+#     thresh: "22 degC"    # default: "18 degC"
+#   dry_days:
+#     thresh: "1 mm/day"   # default: "0.2 mm/day"
