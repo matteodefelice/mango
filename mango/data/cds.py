@@ -20,7 +20,8 @@ def load_era5(
     point_selection: bool = True,
 ) -> xr.Dataset:
     """Load ERA5 daily data, downloading from CDS if not cached.
-
+    The class download ERA5 hourly data for precipitation and temperature, converting it to daily data and saving to a local cache for future runs. 
+    The returned dataset has the same format as the bias-corrected CMIP6 datasets, ready for indicator calculation.
     Args:
         lat: Latitude for selection.
         lon: Longitude (0-360 convention; converted internally for CDS).
@@ -43,7 +44,7 @@ def load_era5(
 
     if cached_full_path.exists():
         return xr.open_dataset(cached_full_path)  # saved with canonical coord names
-
+    # Checking longitude range
     cds_lon = lon if lon < 180 else lon - 360
 
     request = {
@@ -72,12 +73,12 @@ def load_era5(
     tp_daily = e5_t["tp"].resample(valid_time="D")
     t2m_daily = e5_t["t2m"].resample(valid_time="D")
     e5_t = xr.merge([
-        (tp_daily.sum() / 86.4).rename("pr"),
+        (tp_daily.sum() / 86.4).rename("pr"), # converting `m` to kg m-2 s-1
         t2m_daily.max().rename("tasmax"),
         t2m_daily.min().rename("tasmin"),
         t2m_daily.mean().rename("tas"),
     ])
     e5_t = e5_t.rename({"valid_time": "time", "longitude": "lon", "latitude": "lat"})
-    e5_t["pr"].attrs["units"] = "kg m-2 s-1"
+    e5_t["pr"].attrs["units"] = "kg m-2 s-1" # needed for xclim
     e5_t.to_netcdf(cached_full_path)
     return e5_t

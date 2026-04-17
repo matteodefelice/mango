@@ -12,15 +12,16 @@ from mango import indicators
 
 class Workflow:
     """Run the full pipeline for a single location.
+    A caching mechanism is used whenever possible to speed up consecutive runs on the same location. 
 
-    Steps executed by :meth:`run`:
-      1. Load CMIP6 historical + future data from EDH
-      2. Load ERA5 reanalysis from CDS
-      3. Apply ISIMIP bias correction (with disk cache)
+    Steps executed:
+      1. Load CMIP6 historical + future data from EarthDataHub (EDH)
+      2. Load ERA5 reanalysis from Copernicus Data Store (CDS)
+      3. Apply ISIMIP bias correction (with disk cache) using ibicus
       4. Compute all applicable climate indicators
       5. Return results as a tidy DataFrame
 
-    After :meth:`run` the following attributes are available for
+    After `run` the following attributes are available for
     downstream use (e.g. distribution plots):
 
     - ``results``   — tidy DataFrame with columns: value, experiment_id,
