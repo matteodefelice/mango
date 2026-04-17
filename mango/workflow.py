@@ -65,6 +65,11 @@ class Workflow:
         self.list_fut: list[xr.Dataset] = []
         self.obs: xr.Dataset | None = None
 
+    @property
+    def location_label(self) -> str:
+        """Human-readable location string, e.g. ``'Porto (44.1°N, 5.0°W)'``."""
+        return f"{self.label} ({self.lat}°N, {abs(self.lon - 360):.1f}°W)"
+
     def run(self) -> pd.DataFrame:
         """Execute the full pipeline and return the results DataFrame."""
         print(f"[{self.label}] Loading CMIP6 data...")
