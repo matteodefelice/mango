@@ -99,3 +99,9 @@ class Workflow:
         self.results = pd.concat(dfs).assign(location=self.label)
         print(f"[{self.label}] Done.")
         return self.results
+
+    def to_parquet(self, path: str) -> None:
+        """Export results to a Parquet file with an added ``label`` column."""
+        if self.results is None:
+            raise RuntimeError("No results available. Run `run()` first.")
+        self.results.assign(label=self.label).to_parquet(path, index=False)
