@@ -73,6 +73,7 @@ for lat, lon, label in LOCATIONS:
         continue
 
     wf = Workflow(lat=lat, lon=lon, label=label, urls=urls)
+    wf.load()
     wf.run()
     wf.to_parquet(str(out_path))
     table_path = OUT_DIR / f"{label.lower().replace(' ', '_')}_table.png"

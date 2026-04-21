@@ -21,7 +21,13 @@ class Workflow:
       4. Compute all applicable climate indicators
       5. Return results as a tidy DataFrame
 
-    After `run` the following attributes are available for
+    Typical usage::
+
+        wf = Workflow(...)
+        wf.load()           # fetch data + bias correction
+        wf.run()            # compute indicators → wf.results
+
+    After `load` + `run` the following attributes are available for
     downstream use (e.g. distribution plots):
 
     - ``results``   — tidy DataFrame with columns: value, experiment_id,
@@ -71,8 +77,12 @@ class Workflow:
         """Human-readable location string, e.g. ``'Porto (44.1°N, 5.0°W)'``."""
         return f"{self.label} ({self.lat}°N, {abs(self.lon - 360):.1f}°W)"
 
-    def run(self) -> pd.DataFrame:
-        """Execute the full pipeline and return the results DataFrame."""
+    def load(self) -> None:
+        """Load CMIP6 and ERA5 data and apply bias correction.
+
+        Populates ``list_hist``, ``list_fut``, and ``obs``.
+        Must be called before :meth:`run`.
+        """
         print(f"[{self.label}] Loading CMIP6 data...")
         self.list_hist, self.list_fut = load_cmip6_datasets_from_edh(
             self.urls,
@@ -90,13 +100,44 @@ class Workflow:
         print(f"[{self.label}] Bias correction...")
         debias_with_cache(obs=self.obs, list_hist=self.list_hist, list_fut=self.list_fut)
 
+    def run(
+        self,
+        bias_correction: bool = True,
+        months: list[int] | None = None,
+    ) -> pd.DataFrame:
+        """Compute climate indicators and return the results DataFrame.
+
+        Args:
+            bias_correction: Use bias-corrected variables (suffix ``"_bc"``)
+                when ``True``; use raw model output (no suffix) when ``False``.
+            months: If given, restrict computation to these calendar months
+                (1 = Jan … 12 = Dec) before passing data to each indicator.
+
+        Returns:
+            Tidy DataFrame with columns: value, experiment_id, indicator,
+            model, location.
+        """
+        if not self.list_hist:
+            raise RuntimeError("No data loaded. Call `load()` first.")
+
+        suffix = "_bc" if bias_correction else ""
+
+        def _filter(ds: xr.Dataset) -> xr.Dataset:
+            if months is None:
+                return ds
+            return ds.sel(time=ds["time.month"].isin(months))
+
         print(f"[{self.label}] Computing indicators...")
         dfs = []
         for ds in itertools.chain(self.list_hist, self.list_fut):
-            dfs.extend(indicators.compute_all(ds, suffix="_bc"))
-        dfs.extend(indicators.compute_all(self.obs, suffix="", experiment_id="ERA5"))
+            dfs.extend(indicators.compute_all(_filter(ds), suffix=suffix))
+        dfs.extend(indicators.compute_all(_filter(self.obs), suffix="", experiment_id="ERA5"))
 
-        self.results = pd.concat(dfs).assign(location=self.label)
+        self.results = pd.concat(dfs).assign(
+            location=self.label,
+            bias_correction=bias_correction,
+            months=",".join(map(str, months)) if months is not None else None,
+        )
         print(f"[{self.label}] Done.")
         return self.results
 

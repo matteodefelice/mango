@@ -240,3 +240,7 @@ def _rx1day(ds: xr.Dataset, **kwargs) -> xr.DataArray:
 @register("dry_days", requires=["pr"])
 def _dry_days(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.dry_days(pr=ds["pr"], **kwargs)
+
+@register("hot_days", requires=["tasmax"])
+def _hot_days(ds: xr.Dataset, **kwargs) -> xr.DataArray:
+    return xclim.indices.hot_days(tasmax=ds["tasmax"], **kwargs)

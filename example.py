@@ -2,7 +2,7 @@
 
 Configuration is read from mango.yaml (see mango.yaml.example).
 """
-
+# %%
 from mango.data.edh import build_url
 from mango.workflow import Workflow
 from mango.output import DistributionPlot, IndicatorTable
@@ -26,8 +26,9 @@ urls = [[build_url(h), build_url(f)] for h, f in MODELS]
 
 # ── Run workflow ──────────────────────────────────────────────────────────
 wf = Workflow(lat=44.1427, lon=355.0, label="Porto", urls=urls)
+wf.load()
 wf.run()
-
+# %%
 # ── Distribution comparison plots ────────────────────────────────────────
 DistributionPlot(wf).save("distributions.png")
 
