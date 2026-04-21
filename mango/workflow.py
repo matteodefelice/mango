@@ -127,11 +127,13 @@ class Workflow:
                 return ds
             return ds.sel(time=ds["time.month"].isin(months))
 
+        names = indicators.available_for_months_filter() if months is not None else None
+
         print(f"[{self.label}] Computing indicators...")
         dfs = []
         for ds in itertools.chain(self.list_hist, self.list_fut):
-            dfs.extend(indicators.compute_all(_filter(ds), suffix=suffix))
-        dfs.extend(indicators.compute_all(_filter(self.obs), suffix="", experiment_id="ERA5"))
+            dfs.extend(indicators.compute_all(_filter(ds), suffix=suffix, names=names))
+        dfs.extend(indicators.compute_all(_filter(self.obs), suffix="", experiment_id="ERA5", names=names))
 
         self.results = pd.concat(dfs).assign(
             location=self.label,
