@@ -141,7 +141,6 @@ class IndicatorTable:
             )
             .fmt_percent(columns="delta_pct", decimals=1)
             .data_color(columns="delta_pct", palette=_DIVERGING, domain=[-0.95, 0.95])
-            .data_color(columns="bias_vs_era5", palette=_DIVERGING, domain=[-50, 50])
             .tab_style(
                 style=style.text(weight="bold"),
                 locations=loc.body(columns=median_cols),
