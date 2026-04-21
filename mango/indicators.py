@@ -219,6 +219,9 @@ def _csdi(ds: xr.Dataset, **kwargs) -> xr.DataArray:
 def _cdd(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.maximum_consecutive_dry_days(pr=ds["pr"], **kwargs)
 
+@register("maximum_consecutive_tx_days", requires=["tasmax"], full_year_required=False)
+def _maximum_consecutive_tx_days(ds: xr.Dataset, **kwargs) -> xr.DataArray:
+    return xclim.indices.maximum_consecutive_tx_days(tasmax=ds["tasmax"], **kwargs)
 
 @register("cool_night_index", requires=["tasmin"])
 def _cni(ds: xr.Dataset, **kwargs) -> xr.DataArray:
