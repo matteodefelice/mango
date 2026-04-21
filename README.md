@@ -77,6 +77,31 @@ results = pd.concat(all_dfs)
 
 See `example.py` for the full workflow including the summary table.
 
+## Indicator parameters
+
+Per-indicator parameters (thresholds, windows, etc.) can be set in `mango.yaml`
+under an `indicators:` key. Values are forwarded as keyword arguments to the
+underlying xclim function, overriding its defaults.
+
+```yaml
+indicators:
+  hot_days:
+    thresh: "30 degC"      # default: "30 degC" — change e.g. to "35 degC"
+  growing_season_length:
+    thresh: "8.0 degC"     # default: "5.0 degC"
+    window: 6
+  frost_days:
+    thresh: "-2 degC"      # default: "0 degC"
+  cooling_degree_days:
+    thresh: "22 degC"      # default: "18 degC"
+  dry_days:
+    thresh: "1 mm/day"     # default: "0.2 mm/day"
+```
+
+Indicator names must match the registered name exactly (see `mango/indicators.py`).
+Omit an indicator from the config to keep xclim defaults. Threshold strings must
+include units (e.g. `"30 degC"`, `"1 mm/day"`) as required by xclim.
+
 ## Extending indicators
 
 Register a new indicator by decorating a function with `@register`:
