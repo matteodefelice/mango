@@ -41,16 +41,20 @@ from mango import config
 _REGISTRY: dict[str, dict] = {}
 
 
-def register(name: str, requires: list[str]):
+def register(name: str, requires: list[str], full_year_required: bool = False):
     """Decorator to register an indicator function.
 
     Args:
         name: Indicator name (used as key).
         requires: List of *canonical* (base) variable names the dataset must
             contain (e.g. ``["tasmin", "tasmax"]``, **without** suffix).
+        full_year_required: If ``True``, the indicator requires an unbroken daily
+            time series (e.g. it uses consecutive-day logic or annual
+            resampling). Such indicators are automatically skipped when
+            ``Workflow.run()`` is called with a ``months`` filter.
     """
     def decorator(fn: Callable[[xr.Dataset], xr.DataArray]):
-        _REGISTRY[name] = {"fn": fn, "requires": requires}
+        _REGISTRY[name] = {"fn": fn, "requires": requires, "full_year_required": full_year_required}
         return fn
     return decorator
 
@@ -63,6 +67,14 @@ def available() -> list[str]:
 def get_required_vars(name: str) -> list[str]:
     """Return the required canonical variables for an indicator."""
     return _REGISTRY[name]["requires"]
+
+
+def available_for_months_filter() -> list[str]:
+    """Return indicator names safe to use on a month-filtered time series.
+
+    Excludes indicators registered with ``full_year_required=True``.
+    """
+    return [n for n, meta in _REGISTRY.items() if not meta["full_year_required"]]
 
 
 def _prepare_dataset(
@@ -169,31 +181,31 @@ def compute_all(
 # Built-in indicators  (all use canonical names: tasmin, tasmax, tas, pr)
 # ---------------------------------------------------------------------------
 
-@register("biologically_effective_degree_days", requires=["tasmin", "tasmax"])
+@register("biologically_effective_degree_days", requires=["tasmin", "tasmax"], full_year_required=True)
 def _bedd(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.biologically_effective_degree_days(
         tasmin=ds["tasmin"], tasmax=ds["tasmax"], **kwargs,
     )
 
 
-@register("corn_heat_units", requires=["tasmin", "tasmax"])
+@register("corn_heat_units", requires=["tasmin", "tasmax"], full_year_required=False)
 def _corn_heat(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.corn_heat_units(
         tasmin=ds["tasmin"], tasmax=ds["tasmax"], **kwargs,
     ).resample(time="YS").sum()
 
 
-@register("growing_season_length", requires=["tas"])
+@register("growing_season_length", requires=["tas"], full_year_required=True)
 def _gsl(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.growing_season_length(tas=ds["tas"], **kwargs)
 
 
-@register("frost_days", requires=["tasmin"])
+@register("frost_days", requires=["tasmin"], full_year_required=False)
 def _frost(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.frost_days(tasmin=ds["tasmin"], **kwargs)
 
 
-@register("cold_spell_duration_index", requires=["tasmin"])
+@register("cold_spell_duration_index", requires=["tasmin"], full_year_required=False)
 def _csdi(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     tn10 = xclim.core.calendar.percentile_doy(
         ds["tasmin"], per=10,
@@ -203,7 +215,7 @@ def _csdi(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     )
 
 
-@register("maximum_consecutive_dry_days", requires=["pr"])
+@register("maximum_consecutive_dry_days", requires=["pr"], full_year_required=False)
 def _cdd(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.maximum_consecutive_dry_days(pr=ds["pr"], **kwargs)
 
@@ -213,12 +225,12 @@ def _cni(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.cool_night_index(tasmin=ds["tasmin"], **kwargs)
 
 
-@register("cooling_degree_days", requires=["tas"])
+@register("cooling_degree_days", requires=["tas"], full_year_required=False)
 def _cdd_temp(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.cooling_degree_days(tas=ds["tas"], **kwargs)
 
 
-@register("cold_and_dry_days", requires=["tas", "pr"])
+@register("cold_and_dry_days", requires=["tas", "pr"], full_year_required=False)
 def _cold_dry(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     tas_per = xclim.core.calendar.percentile_doy(
         ds["tas"], window=5, per=25,
@@ -232,15 +244,16 @@ def _cold_dry(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     )
 
 
-@register("max_1day_precipitation_amount", requires=["pr"])
+@register("max_1day_precipitation_amount", requires=["pr"], full_year_required=False)
 def _rx1day(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.max_1day_precipitation_amount(pr=ds["pr"], **kwargs)
 
 
-@register("dry_days", requires=["pr"])
+@register("dry_days", requires=["pr"], full_year_required=False)
 def _dry_days(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.dry_days(pr=ds["pr"], **kwargs)
 
-@register("hot_days", requires=["tasmax"])
+
+@register("hot_days", requires=["tasmax"], full_year_required=False)
 def _hot_days(ds: xr.Dataset, **kwargs) -> xr.DataArray:
     return xclim.indices.hot_days(tasmax=ds["tasmax"], **kwargs)
