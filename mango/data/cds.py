@@ -19,9 +19,11 @@ def load_era5(
     cache_dir: Path | None = None,
     point_selection: bool = True,
 ) -> xr.Dataset:
-    """Load ERA5 daily data, downloading from CDS if not cached.
+    """Load ERA5 daily time-series data, downloading from CDS if not cached.
+    Using the dataset [ERA5 hourly time-series data on single levels from 1940 to present](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-timeseries?tab=download)
     The class download ERA5 hourly data for precipitation and temperature, converting it to daily data and saving to a local cache for future runs. 
     The returned dataset has the same format as the bias-corrected CMIP6 datasets, ready for indicator calculation.
+    The conversion to daily data generates: max, min, and mean temperature, and total daily precipitation (converted to CMIP6-compatible units).
     Args:
         lat: Latitude for selection.
         lon: Longitude (0-360 convention; converted internally for CDS).
