@@ -3,6 +3,7 @@
 A Python library for computing climate indicators from CMIP6 model ensembles,
 with ERA5 reanalysis as observational reference and ISIMIP bias correction.
 
+The library is based on the data from [Earth Data Hub](https://earthdatahub.destine.eu/) (for CMIP6), [Climate Data Store](https://cds.climate.copernicus.eu/) (for ERA5 time-series) and from the Python libraries [ibicus](https://ibicus.readthedocs.io/en/latest/getting_started/overview.html) (bias-correction) and [xclim](https://xclim.readthedocs.io/en/latest/readme.html) (for indicators)
 ## Purpose
 
 Given a location and a set of CMIP6 models, mango:
@@ -24,8 +25,10 @@ mango/
 │   ├── edh.py         # CMIP6 data access from Earth Data Hub (zarr, cached)
 │   └── cds.py         # ERA5 data access from CDS API (netCDF, cached)
 ├── debias.py          # ISIMIP bias correction + disk cache for debiased data
-└── indicators.py      # Registry of climate indicators built on xclim
+├── indicators.py      # Registry of climate indicators built on xclim
+└── workflow.py        # High-level end-to-end pipeline
 example.py             # End-to-end workflow script
+batch.py               # Batch runner over multiple locations/models
 mango.yaml.example     # Configuration template
 ```
 
@@ -138,3 +141,4 @@ Delete the relevant subdirectory to force a re-download or re-computation.
 - `zarr`, `fsspec` — remote zarr access
 - `great_tables`, `pandas` — results table
 - `pyyaml` — configuration
+- `streamlit`, `plotly` 
