@@ -1,6 +1,7 @@
 """End-to-end climate indicator workflow."""
 
 import itertools
+from typing import Callable
 
 import pandas as pd
 import xarray as xr
@@ -77,28 +78,50 @@ class Workflow:
         """Human-readable location string, e.g. ``'Porto (44.1°N, 5.0°W)'``."""
         return f"{self.label} ({self.lat}°N, {abs(self.lon - 360):.1f}°W)"
 
-    def load(self) -> None:
+    @property
+    def is_loaded(self) -> bool:
+        """True once :meth:`load` has populated all three data attributes."""
+        return bool(self.list_hist) and bool(self.list_fut) and self.obs is not None
+
+    def load(self, on_step: Callable[[str, float], None] | None = None) -> None:
         """Load CMIP6 and ERA5 data and apply bias correction.
 
         Populates ``list_hist``, ``list_fut``, and ``obs``.
         Must be called before :meth:`run`.
+
+        Args:
+            on_step: Optional callback invoked before each of the three phases
+                as ``on_step(label, progress)`` where ``progress`` ∈ [0, 1].
+                Useful for progress bars in UIs.
         """
-        print(f"[{self.label}] Loading CMIP6 data...")
-        self.list_hist, self.list_fut = load_cmip6_datasets_from_edh(
-            self.urls,
-            lat=self.lat,
-            lon=self.lon,
-            variables=self.variables,
-            hist_period=self.hist_period,
-            fut_period=self.fut_period,
-            scenario=self.scenario,
-        )
+        def _step(label: str, progress: float) -> None:
+            print(f"[{self.label}] {label}")
+            if on_step is not None:
+                on_step(label, progress)
 
-        print(f"[{self.label}] Loading ERA5...")
-        self.obs = load_era5(lat=self.lat, lon=self.lon)
+        try:
+            _step("Loading CMIP6 data...", 0.05)
+            self.list_hist, self.list_fut = load_cmip6_datasets_from_edh(
+                self.urls,
+                lat=self.lat,
+                lon=self.lon,
+                variables=self.variables,
+                hist_period=self.hist_period,
+                fut_period=self.fut_period,
+                scenario=self.scenario,
+            )
 
-        print(f"[{self.label}] Bias correction...")
-        debias_with_cache(obs=self.obs, list_hist=self.list_hist, list_fut=self.list_fut)
+            _step("Loading ERA5...", 0.45)
+            self.obs = load_era5(lat=self.lat, lon=self.lon)
+
+            _step("Bias correction...", 0.75)
+            debias_with_cache(obs=self.obs, list_hist=self.list_hist, list_fut=self.list_fut)
+
+            _step("Done.", 1.0)
+        except Exception:
+            # Leave no partial state behind on failure.
+            self.list_hist, self.list_fut, self.obs = [], [], None
+            raise
 
     def run(
         self,
