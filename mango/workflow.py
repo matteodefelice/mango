@@ -80,7 +80,7 @@ class Workflow:
 
     @property
     def is_loaded(self) -> bool:
-        """True once :meth:`load` has populated all three data attributes."""
+        """True once `load` has populated all three data attributes."""
         return bool(self.list_hist) and bool(self.list_fut) and self.obs is not None
 
     def load(self, on_step: Callable[[str, float], None] | None = None) -> None:
@@ -148,7 +148,7 @@ class Workflow:
         def _filter(ds: xr.Dataset) -> xr.Dataset:
             if months is None:
                 return ds
-            return ds.sel(time=ds["time.month"].isin(months))
+            return ds.where(ds["time.month"].isin(months))
 
         names = indicators.available_for_months_filter() if months is not None else None
 
