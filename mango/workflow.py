@@ -87,7 +87,7 @@ class Workflow:
         """Load CMIP6 and ERA5 data and apply bias correction.
 
         Populates ``list_hist``, ``list_fut``, and ``obs``.
-        Must be called before :meth:`run`.
+        Must be called before `run`.
 
         Args:
             on_step: Optional callback invoked before each of the three phases
@@ -154,6 +154,7 @@ class Workflow:
 
         print(f"[{self.label}] Computing indicators...")
         dfs = []
+        # Compute indicators for each dataset, applying month filter and suffix as needed
         for ds in itertools.chain(self.list_hist, self.list_fut):
             dfs.extend(indicators.compute_all(_filter(ds), suffix=suffix, names=names))
         dfs.extend(indicators.compute_all(_filter(self.obs), suffix="", experiment_id="ERA5", names=names))

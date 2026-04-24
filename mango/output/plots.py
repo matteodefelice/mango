@@ -12,11 +12,12 @@ C_ERA5 = "#1a1a1a"
 C_HIST = "#2166ac"
 C_FUT  = "#b2182b"
 
-
+# From Kelvin to Celsius
 def _tas_celsius(ds, var):
     return ds[var].values.flatten() - 273.15
 
 
+# From kg/m2/s to mm/day (returning only wet days > 0.1 mm/day)
 def _pr_mmday(ds, var):
     pr = ds[var].values.flatten() * 86400
     return pr[pr > 0.1]
