@@ -80,6 +80,22 @@ results = pd.concat(all_dfs)
 
 See `example.py` for the full workflow including the summary table.
 
+### Interactive browser UI
+
+A small [Streamlit](https://streamlit.io/) app (`app.py`) lets you pick a
+location, load and debias the data once (with an on-screen progress bar),
+then explore any indicator interactively — including a month-range filter
+and a boxplot showing every CMIP6 model and ERA5 year.
+
+```bash
+pip install streamlit plotly
+streamlit run app.py
+```
+
+The app opens in your default browser at <http://localhost:8501>. Loaded
+data and bias-corrected outputs are shared with the Python API via the
+same on-disk cache, so repeated runs are fast.
+
 ## Indicator parameters
 
 Per-indicator parameters (thresholds, windows, etc.) can be set in `mango.yaml`
